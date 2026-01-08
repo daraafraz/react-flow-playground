@@ -1,0 +1,37 @@
+.custom-node {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  color: white;
+  border: 2px solid #fff;
+}
+
+.custom-node-header {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.custom-node-body {
+  font-size: 12px;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.custom-node-body p {
+  margin: 0;
+}
+
+.custom-handle {
+  background: #fff;
+  border: 2px solid #667eea;
+  width: 12px;
+  height: 12px;
+}
+
+.custom-handle:hover {
+  background: #667eea;
+}
+
