@@ -1,7 +1,7 @@
 {
   "name": "react-flow-playground",
-  "private": true,
   "version": "1.0.0",
+  "description": "A fixed hierarchy creator built with React Flow",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,6 +18,20 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "vite": "^6.0.3"
+  },
+  "keywords": [
+    "react",
+    "react-flow",
+    "hierarchy",
+    "tree",
+    "node-based",
+    "diagram"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
   }
 }
 

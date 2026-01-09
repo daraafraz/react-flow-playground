@@ -95,6 +95,7 @@
   z-index: 1;
   flex: 1;
   justify-content: space-between;
+  pointer-events: auto;
 }
 
 .hierarchy-node-label {
@@ -106,6 +107,34 @@
   padding: 0;
   border: none;
   line-height: 1.4;
+  cursor: text;
+  user-select: none;
+  transition: color 0.2s ease;
+  pointer-events: auto;
+  position: relative;
+  z-index: 20;
+}
+
+.hierarchy-node-label:hover {
+  color: #4a90e2;
+  cursor: text;
+}
+
+.hierarchy-node-label-input {
+  font-size: 20px;
+  font-weight: 500;
+  color: #18181b;
+  letter-spacing: -0.01em;
+  text-align: left;
+  padding: 0;
+  border: 2px solid #4a90e2;
+  border-radius: 4px;
+  line-height: 1.4;
+  background: white;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+  box-sizing: border-box;
 }
 
 .hierarchy-node-actions {
@@ -179,33 +208,20 @@
   line-height: 1.5;
 }
 
-/* Handle styling - blue dots like wireframe */
-.hierarchy-handle-source,
-.hierarchy-handle-target {
+/* Left-side handles - blue, visible, center-left */
+.hierarchy-handle-left {
   width: 10px;
   height: 10px;
-  border: 2px solid white;
   background: #4a90e2;
+  border: 2px solid white;
   border-radius: 50%;
+  left: -5px;
   opacity: 1;
   pointer-events: auto;
 }
 
-.hierarchy-handle-source {
-  bottom: -5px;
-  left: 0;
-  transform: translateX(-50%);
-}
-
-.hierarchy-handle-target {
-  top: -5px;
-  left: 0;
-  transform: translateX(-50%);
-}
-
-.hierarchy-handle-source:hover,
-.hierarchy-handle-target:hover {
+.hierarchy-handle-left:hover {
   background: #357abd;
-  transform: translateX(-50%) scale(1.2);
+  transform: scale(1.2);
 }
 

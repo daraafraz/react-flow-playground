@@ -64,15 +64,70 @@
   background-color: #f5f4f0;
 }
 
-/* Edge styling - blue edges like wireframe */
+/* Edge styling - blue smooth curved edges */
 .react-flow__edge-path {
-  stroke: #4a90e2;
-  stroke-width: 2;
-}
-
-.react-flow__edge.selected .react-flow__edge-path {
   stroke: #4a90e2;
   stroke-width: 2.5;
 }
 
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #4a90e2;
+  stroke-width: 3;
+}
+
+/* Empty state styling */
+.empty-state-panel {
+  transform: translateX(-50%);
+  margin-top: 100px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e8e6e0;
+  max-width: 400px;
+}
+
+.empty-state h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #18181b;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.01em;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #71717a;
+  margin: 0 0 24px 0;
+  font-weight: 400;
+}
+
+.empty-state-button {
+  padding: 12px 24px;
+  border: 1px solid #e8e6e0;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #18181b;
+  background: #e8e6e0;
+  font-family: inherit;
+}
+
+.empty-state-button:hover {
+  background: #d4d4d8;
+  border-color: #d4d4d8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
 

@@ -1,144 +1,132 @@
-# React Flow Playground 🎮
+# React Flow Hierarchy Creator
 
-A fully interactive playground for experimenting with [React Flow](https://reactflow.dev/) - a highly customizable React component for building node-based editors and interactive diagrams.
+A fixed hierarchy creator built with React Flow. Create and manage tree structures with a clean, minimal interface where nodes can add children, remove themselves, and maintain proper spacing without overlaps.
 
-## Features ✨
+## What Problem This Solves
 
-- **Interactive Canvas**: Drag nodes, connect handles, zoom & pan
-- **Custom Nodes**: Example custom node with gradient styling
-- **Multiple Edge Types**: Animated, smoothstep, and step edges
-- **Built-in Components**: 
-  - MiniMap for navigation
-  - Controls for zoom/fit view
-  - Background with dots pattern
-  - Info Panel
-- **Live Updates**: Hot module replacement with Vite
+Building hierarchical tree interfaces in React Flow often requires custom layout logic, collision detection, and node management. This project provides a ready-to-use hierarchy creator with:
 
-## Getting Started 🚀
+- Automatic tree layout with collision prevention
+- Fixed positioning (nodes aren't draggable, maintaining structure)
+- Self-contained node management (each node can add/remove children)
+- Clean, design-system-aligned UI
 
-### Prerequisites
+## Who This Is For
 
-- Node.js (v16 or higher)
-- npm, yarn, or pnpm
+- Developers building tree/hierarchy visualizations
+- Teams needing a React Flow-based organizational chart tool
+- Anyone prototyping node-based hierarchy interfaces
+- Contributors looking to extend React Flow patterns
 
-### Installation
+## Why This Exists
 
-1. Install dependencies:
+React Flow is powerful but building a fixed hierarchy with proper spacing, collision detection, and node management requires significant setup. This project removes that friction by providing:
+
+- Pre-configured layout algorithms
+- Working collision detection
+- Node lifecycle management
+- A clean starting point for hierarchy-based applications
+
+**What pain this removes:**
+- Manual layout calculations
+- Overlap detection and resolution
+- Node state synchronization
+- Edge connection management
+
+**What motivated its creation:**
+The need for a simple, working hierarchy creator that "just works" without requiring deep React Flow expertise.
+
+## What This Project Does
+
+- ✅ Creates fixed hierarchical tree structures
+- ✅ Automatically positions children with proper indentation
+- ✅ Prevents node overlaps with collision detection
+- ✅ Allows nodes to add children via button
+- ✅ Allows nodes to remove themselves and descendants
+- ✅ Maintains clean, minimal UI aligned with design systems
+- ✅ Provides empty state when no nodes exist
+- ✅ Supports zoom and pan on the canvas
+
+## What This Project Does NOT Do
+
+- ❌ Allow dragging nodes (structure is fixed)
+- ❌ Support multiple root nodes simultaneously
+- ❌ Provide data persistence (no save/load)
+- ❌ Include user authentication or multi-user features
+- ❌ Export to formats like JSON, PNG, or PDF
+- ❌ Support undo/redo operations
+- ❌ Include advanced layout algorithms (Dagre, ELK, etc.)
+
+## Quick Start
+
+### Install
 
 ```bash
 npm install
 ```
 
-2. Start the development server:
+### Run
 
 ```bash
 npm run dev
 ```
 
-3. Open your browser and navigate to `http://localhost:3000`
+Open `http://localhost:3000` in your browser.
 
-## Available Scripts 📜
+### Minimal Example
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+The app starts with a single "Root" node. Click the "+" button on any node to add a child. Click the "−" button to remove a node and all its descendants.
 
-## Project Structure 📁
+## Usage
 
-```
-react-flow-playground/
-├── src/
-│   ├── nodes/
-│   │   ├── CustomNode.jsx      # Custom node component
-│   │   └── CustomNode.css      # Custom node styles
-│   ├── App.jsx                 # Main React Flow component
-│   ├── App.css                 # App styles
-│   ├── main.jsx                # Entry point
-│   └── index.css               # Global styles
-├── index.html
-├── vite.config.js
-└── package.json
-```
+**Adding Children:**
+1. Click the "+" button (bottom-right) on any node
+2. A new child appears below and indented from the parent
 
-## Customization 🎨
+**Removing Nodes:**
+1. Click the "−" button (top-right) on any node
+2. The node and all its descendants are removed
 
-### Adding New Node Types
+**Navigation:**
+- Zoom with mouse wheel
+- Pan by dragging empty canvas space
+- Use controls in bottom-left for zoom/fit view
 
-1. Create a new node component in `src/nodes/`
-2. Register it in the `nodeTypes` object in `App.jsx`
-3. Use it in your `initialNodes` array
+## How It Works
 
-Example:
+The hierarchy creator uses:
 
-```jsx
-const nodeTypes = {
-  custom: CustomNode,
-  yourNewType: YourNewNode,
-};
-```
+1. **Layout Algorithm**: Calculates positions using BFS traversal, positioning children 1rem down and indented from parents
+2. **Collision Detection**: Iteratively resolves overlaps by adjusting node positions
+3. **Node State Management**: React Flow's `useNodesState` and `useEdgesState` hooks manage the tree
+4. **Custom Node Components**: Each node is a React component with add/remove buttons
 
-### Modifying Edges
+Nodes are not draggable—the structure is maintained automatically. Edges connect from parent to child using React Flow's default handles.
 
-Change edge types and styles in the `initialEdges` array:
+## Contributing
 
-```jsx
-{
-  id: 'e1-2',
-  source: '1',
-  target: '2',
-  type: 'smoothstep', // default, step, smoothstep, straight
-  animated: true,
-  style: { stroke: '#6ede87', strokeWidth: 2 },
-}
-```
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 
-## Learn More 📚
+- How to set up the project locally
+- How to run tests and linting
+- How to submit a pull request
+- What kinds of contributions are welcome
 
-- [React Flow Documentation](https://reactflow.dev/learn)
-- [React Flow Examples](https://reactflow.dev/examples)
-- [React Flow API Reference](https://reactflow.dev/api-reference)
-- [React Flow Pro](https://reactflow.dev/pro) - Advanced features and support
+## Project Status
 
-## Key Concepts 💡
+**Status:** Active development
 
-- **Nodes**: Building blocks of your diagram (input, output, default, custom)
-- **Edges**: Connections between nodes with various styles
-- **Handles**: Connection points on nodes (source/target)
-- **Controls**: Built-in UI for zoom, fit view, etc.
-- **MiniMap**: Overview navigation component
-- **Background**: Visual grid or dots pattern
+This project is in active use and development. Response times for issues and PRs may vary, but contributions are reviewed regularly.
 
-## Tips 🎯
+**Current Focus:**
+- Stability and bug fixes
+- Documentation improvements
+- Performance optimizations
 
-- **Drag nodes**: Click and drag any node
-- **Connect nodes**: Drag from a handle (dot) to another node's handle
-- **Select multiple**: Hold Shift and drag to select multiple nodes
-- **Delete**: Select nodes/edges and press Delete/Backspace
-- **Zoom**: Use mouse wheel or controls
-- **Pan**: Drag on empty canvas space
-- **Fit view**: Click the fit view icon in controls
+## License
 
-## Next Steps 🔥
-
-Try these examples from the official docs:
-
-1. [Add Node on Edge Drop](https://reactflow.dev/examples/nodes/add-node-on-edge-drop)
-2. [Drag and Drop](https://reactflow.dev/examples/interaction/drag-and-drop)
-3. [Validation](https://reactflow.dev/examples/interaction/validation)
-4. [Save and Restore](https://reactflow.dev/examples/interaction/save-and-restore)
-5. [Custom Edges](https://reactflow.dev/examples/edges/custom-edges)
-
-## Resources 🔗
-
-- [React Flow Website](https://reactflow.dev/)
-- [GitHub Repository](https://github.com/xyflow/xyflow)
-- [Discord Community](https://discord.gg/RVmnytFmGW)
-
-## License 📄
-
-This playground is open source. React Flow is MIT licensed.
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
 
-Built with ❤️ using React Flow v12
-
+Built with [React Flow](https://reactflow.dev/) v12

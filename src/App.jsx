@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import {
   ReactFlow,
-  ReactFlowProvider,
   Controls,
   Background,
   useNodesState,
@@ -13,7 +12,6 @@ import {
 
 import HierarchyNode from './nodes/HierarchyNode';
 import EmptyStateNode from './nodes/EmptyStateNode';
-import LShapeEdge from './edges/LShapeEdge';
 import './App.css';
 
 // Define custom node types
@@ -22,29 +20,22 @@ const nodeTypes = {
   emptyState: EmptyStateNode,
 };
 
-// Define custom edge types
-const edgeTypes = {
-  lshape: LShapeEdge,
-};
-
 // Tree layout constants - Credit card proportions (approximately 1.59:1)
 const NODE_WIDTH = 280;
 const NODE_HEIGHT = 141; // 20% shorter: 176 * 0.8 ≈ 141
-const INDENT_OFFSET = 48; // 200% increase: 16px * 3 = 48px
-const VERTICAL_OFFSET = 16; // 1rem = 16px
-const MIN_SIBLING_SPACING = 40; // Minimum spacing between sibling nodes (increased to prevent overlap)
+const VERTICAL_OFFSET = 32; // 2rem vertical spacing between cards
+const INDENT_OFFSET = 32; // 2rem indentation for children
+const MIN_SIBLING_SPACING = 40; // Minimum spacing between sibling nodes
 const MIN_NODE_SPACING = 30; // Minimum spacing between any nodes
 
-// Calculate tree layout positions - children 1rem down and 1rem indented
+// Calculate tree layout positions - strict vertical tree with preorder traversal
+// X-axis = depth, Y-axis = document order (one node per row)
 const calculateLayout = (nodes, edges) => {
-  // Filter out empty state nodes
-  const hierarchyNodes = nodes.filter(n => n.type === 'hierarchy');
-  
   // Build parent-child relationships
   const childrenMap = {};
   const parentMap = {};
   
-  hierarchyNodes.forEach(node => {
+  nodes.forEach(node => {
     childrenMap[node.id] = [];
   });
   
@@ -58,145 +49,37 @@ const calculateLayout = (nodes, edges) => {
   
   const positions = {};
   
-  // Find root node (node with no incoming edges)
+  // Find root nodes (nodes with no incoming edges)
   const hasIncomingEdge = new Set(edges.map(e => e.target));
-  const rootNodes = hierarchyNodes.filter(n => !hasIncomingEdge.has(n.id));
+  const rootNodes = nodes.filter(n => !hasIncomingEdge.has(n.id));
   
-  // Position root node
-  if (rootNodes.length > 0) {
-    rootNodes.forEach((root, index) => {
-      positions[root.id] = { x: 100 + index * (NODE_WIDTH + 100), y: 50 };
-    });
-  }
+  // Running Y cursor - increments for each node in document order
+  let currentY = 50;
+  const baseX = 100; // Base X position for root nodes
   
-  // Calculate positions for all nodes using BFS
-  const queue = [...rootNodes];
-  const visited = new Set(rootNodes.map(n => n.id));
-  
-  while (queue.length > 0) {
-    const currentNode = queue.shift();
-    const currentPos = positions[currentNode.id];
-    const children = childrenMap[currentNode.id] || [];
+  // Preorder traversal: visit node, then recursively visit all descendants
+  const traverse = (nodeId, depth) => {
+    // Position current node
+    const x = baseX + (depth * INDENT_OFFSET);
+    positions[nodeId] = { x, y: currentY };
     
-    if (children.length > 0) {
-      // Position children 1rem down and 1rem indented
-      let currentX = currentPos.x + INDENT_OFFSET;
-      const startY = currentPos.y + NODE_HEIGHT + VERTICAL_OFFSET;
-      
-      children.forEach((childId, index) => {
-        // Check if this child would overlap with previous siblings
-        if (index > 0) {
-          const prevChildId = children[index - 1];
-          const prevChildPos = positions[prevChildId];
-          // Ensure minimum spacing from previous sibling
-          currentX = Math.max(
-            currentX,
-            prevChildPos.x + NODE_WIDTH + MIN_SIBLING_SPACING
-          );
-        }
-        
-        // Position child - ensure it doesn't overlap with parent
-        const childX = Math.max(currentX, currentPos.x + INDENT_OFFSET);
-        positions[childId] = { x: childX, y: startY };
-        
-        // Move to next position for potential next sibling
-        currentX = childX + NODE_WIDTH + MIN_SIBLING_SPACING;
-        
-        // Add to queue if not visited
-        if (!visited.has(childId)) {
-          const childNode = hierarchyNodes.find(n => n.id === childId);
-          if (childNode) {
-            queue.push(childNode);
-            visited.add(childId);
-          }
-        }
-      });
-    }
-  }
-  
-  // Comprehensive collision detection - check ALL nodes for overlaps
-  const resolveCollisions = () => {
-    const nodeIds = Object.keys(positions);
-    const MIN_SPACING = MIN_NODE_SPACING; // Minimum spacing between any two nodes
+    // Move Y cursor down for this node
+    currentY += NODE_HEIGHT + VERTICAL_OFFSET;
     
-    // Check all pairs of nodes
-    let hasOverlaps = true;
-    let iterations = 0;
-    const maxIterations = 50;
-    
-    while (hasOverlaps && iterations < maxIterations) {
-      hasOverlaps = false;
-      iterations++;
-      
-      for (let i = 0; i < nodeIds.length; i++) {
-        for (let j = i + 1; j < nodeIds.length; j++) {
-          const node1Id = nodeIds[i];
-          const node2Id = nodeIds[j];
-          const pos1 = positions[node1Id];
-          const pos2 = positions[node2Id];
-          
-          // Check if nodes overlap (considering both x and y)
-          const overlapX = pos1.x + NODE_WIDTH + MIN_SPACING > pos2.x && 
-                          pos2.x + NODE_WIDTH + MIN_SPACING > pos1.x;
-          const overlapY = pos1.y + NODE_HEIGHT + MIN_SPACING > pos2.y && 
-                          pos2.y + NODE_HEIGHT + MIN_SPACING > pos1.y;
-          
-          if (overlapX && overlapY) {
-            hasOverlaps = true;
-            
-            // Determine which node to move (prefer moving the one further right/down)
-            // If they're on the same level (similar y), move the right one
-            const yDiff = Math.abs(pos1.y - pos2.y);
-            if (yDiff < 10) {
-              // Same level - move the rightmost one further right
-              if (pos1.x < pos2.x) {
-                positions[node2Id].x = pos1.x + NODE_WIDTH + MIN_SPACING;
-              } else {
-                positions[node1Id].x = pos2.x + NODE_WIDTH + MIN_SPACING;
-              }
-            } else {
-              // Different levels - move the lower one down
-              if (pos1.y < pos2.y) {
-                positions[node2Id].y = pos1.y + NODE_HEIGHT + MIN_SPACING;
-              } else {
-                positions[node1Id].y = pos2.y + NODE_HEIGHT + MIN_SPACING;
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    // Final pass: ensure siblings on same level don't overlap
-    const nodesByLevel = {};
-    nodeIds.forEach(nodeId => {
-      const y = positions[nodeId].y;
-      const level = Math.floor(y / 50) * 50; // Group by approximate level
-      if (!nodesByLevel[level]) {
-        nodesByLevel[level] = [];
-      }
-      nodesByLevel[level].push(nodeId);
+    // Get children and process them recursively (depth-first)
+    const children = childrenMap[nodeId] || [];
+    children.forEach(childId => {
+      traverse(childId, depth + 1);
     });
     
-    Object.values(nodesByLevel).forEach(levelNodes => {
-      // Sort by x position
-      levelNodes.sort((a, b) => positions[a].x - positions[b].x);
-      
-      for (let i = 0; i < levelNodes.length - 1; i++) {
-        const node1Id = levelNodes[i];
-        const node2Id = levelNodes[i + 1];
-        const pos1 = positions[node1Id];
-        const pos2 = positions[node2Id];
-        
-        // Ensure minimum spacing
-        if (pos1.x + NODE_WIDTH + MIN_SPACING > pos2.x) {
-          positions[node2Id].x = pos1.x + NODE_WIDTH + MIN_SPACING;
-        }
-      }
-    });
+    // After processing all descendants, Y cursor is already positioned
+    // for the next sibling or next node in document order
   };
   
-  resolveCollisions();
+  // Process all root nodes in order
+  rootNodes.forEach(root => {
+    traverse(root.id, 0);
+  });
   
   return positions;
 };
@@ -216,6 +99,68 @@ const createInitialNodes = () => [
 ];
 
 const createInitialEdges = () => [];
+
+// Custom wheel handler component to intercept scroll events
+// Implements Figma-like smooth zoom and fast pan
+function WheelHandler() {
+  const { getViewport, setViewport } = useReactFlow();
+
+  const handleWheel = useCallback((event) => {
+    // Check if Cmd (metaKey on Mac) or Ctrl (on Windows/Linux) is pressed
+    if (event.metaKey || event.ctrlKey) {
+      // Zoom when modifier key is held - match pan's direct, responsive approach
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const viewport = getViewport();
+      const currentZoom = viewport.zoom;
+      
+      // Match pan's multiplier approach - direct and immediate
+      const zoomMultiplier = 1.5; // Same as pan multiplier for consistency
+      const zoomDelta = (event.deltaY || 0) * zoomMultiplier;
+      
+      // Direct zoom calculation - similar to pan's direct application
+      // Convert pixel delta to zoom change (negative deltaY = zoom in)
+      const zoomChange = -zoomDelta * 0.001; // Scale down for zoom sensitivity
+      const newZoom = Math.max(0.1, Math.min(2, currentZoom + zoomChange));
+      
+      // Apply zoom immediately (no smoothing, matching pan's responsiveness)
+      setViewport({ ...viewport, zoom: newZoom });
+    } else {
+      // Pan when no modifier key - fast, responsive movement
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const viewport = getViewport();
+      
+      // Aggressive pan multiplier for fast, responsive panning
+      // Trackpad should feel close to 1:1 gesture movement
+      const panMultiplier = 1.5; // Increase for faster pan
+      const panX = (event.deltaX || 0) * panMultiplier;
+      const panY = (event.deltaY || 0) * panMultiplier;
+      
+      // Apply pan immediately (no damping for responsiveness)
+      setViewport({
+        x: viewport.x - panX,
+        y: viewport.y - panY,
+        zoom: viewport.zoom,
+      });
+    }
+  }, [getViewport, setViewport]);
+
+  useEffect(() => {
+    const pane = document.querySelector('.react-flow__pane');
+    if (pane) {
+      // Use capture phase to intercept before React Flow's handler
+      pane.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+      return () => {
+        pane.removeEventListener('wheel', handleWheel, { capture: true });
+      };
+    }
+  }, [handleWheel]);
+
+  return null;
+}
 
 function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(createInitialNodes);
@@ -279,6 +224,17 @@ function App() {
     setEdges([]);
   }, []);
 
+  // Update node label
+  const handleUpdateLabel = useCallback((nodeId, newLabel) => {
+    setNodes((nds) => 
+      nds.map(node => 
+        node.id === nodeId 
+          ? { ...node, data: { ...node.data, label: newLabel } }
+          : node
+      )
+    );
+  }, []);
+
   // Add child node
   const handleAddChild = useCallback((parentId) => {
     const childId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -300,11 +256,11 @@ function App() {
       id: `e-${parentId}-${childId}`,
       source: parentId,
       target: childId,
-      sourceHandle: 'bottom-left',
-      targetHandle: 'top-left',
-      type: 'lshape',
+      sourceHandle: 'left',
+      targetHandle: 'left',
+      type: 'smoothstep',
       animated: false,
-      style: { stroke: '#4a90e2', strokeWidth: 2 },
+      style: { stroke: '#4a90e2', strokeWidth: 2.5 },
     };
     
     // Add both node and edge
@@ -315,40 +271,30 @@ function App() {
   // Update layout positions when nodes or edges change
   useEffect(() => {
     setNodes((nds) => {
-      // Handle empty state node
-      const hasEmptyState = nds.some(n => n.type === 'emptyState');
-      const hasHierarchyNodes = nds.some(n => n.type === 'hierarchy');
+      const hierarchyNodes = nds.filter(n => n.type === 'hierarchy');
+      const emptyStateNode = nds.find(n => n.type === 'emptyState');
+      const currentEdges = edgesRef.current;
       
-      // Add empty state node if no hierarchy nodes exist
-      if (!hasHierarchyNodes && !hasEmptyState) {
-        const emptyStateNode = {
-          id: 'empty-state',
-          type: 'emptyState',
-          data: {
-            onAddRoot: handleAddRoot,
-          },
-          position: { x: 400, y: 300 }, // Center-ish position
-          draggable: false,
-        };
-        return [emptyStateNode];
-      }
-      
-      // Remove empty state node if hierarchy nodes exist
-      if (hasHierarchyNodes && hasEmptyState) {
-        return nds.filter(n => n.type !== 'emptyState');
-      }
-      
-      // If only empty state exists, return as is
-      if (hasEmptyState && !hasHierarchyNodes) {
+      // If no hierarchy nodes, show empty state node
+      if (hierarchyNodes.length === 0) {
+        if (!emptyStateNode) {
+          return [{
+            id: 'empty-state',
+            type: 'emptyState',
+            data: {
+              onAddRoot: handleAddRoot,
+            },
+            position: { x: 400, y: 300 },
+            draggable: false,
+          }];
+        }
+        // Keep existing empty state node
         return nds;
       }
       
-      // Update hierarchy nodes
-      const hierarchyNodes = nds.filter(n => n.type === 'hierarchy');
-      const currentEdges = edgesRef.current;
+      // If hierarchy nodes exist, remove empty state node and update hierarchy nodes
       const positions = calculateLayout(hierarchyNodes, currentEdges);
-      
-      return hierarchyNodes.map((node) => {
+      const updatedHierarchyNodes = hierarchyNodes.map((node) => {
         const newPosition = positions[node.id];
         const childrenCount = currentEdges.filter(e => e.source === node.id).length;
         const newData = {
@@ -356,13 +302,15 @@ function App() {
           childrenCount: childrenCount,
           onAddChild: handleAddChild,
           onRemoveChild: handleRemoveChild,
+          onUpdateLabel: handleUpdateLabel,
         };
         
         // Only create new object if something actually changed
         if (
           node.position.x !== newPosition?.x ||
           node.position.y !== newPosition?.y ||
-          node.data.childrenCount !== newData.childrenCount
+          node.data.childrenCount !== newData.childrenCount ||
+          node.data.label !== newData.label
         ) {
           return {
             ...node,
@@ -372,49 +320,36 @@ function App() {
         }
         return node;
       });
+      
+      // Return hierarchy nodes only (empty state node is removed)
+      return updatedHierarchyNodes;
     });
-  }, [nodes.length, edges.length, handleAddChild, handleRemoveChild, handleAddRoot, setNodes]);
+  }, [nodes.length, edges.length, handleAddChild, handleRemoveChild, handleAddRoot, handleUpdateLabel, setNodes]);
 
-  // Inner component that has access to ReactFlow context
-  const FlowContent = () => {
-    const { fitView, getViewport, setViewport } = useReactFlow();
-    const hasInitialized = useRef(false);
-
-    // Center viewport on initial load with lower zoom
-    useEffect(() => {
-      if (!hasInitialized.current && nodes.length > 0) {
-        // Small delay to ensure React Flow is fully initialized
-        const timer = setTimeout(() => {
-          fitView({ padding: 0.2, duration: 0 });
-          // Get current viewport after fitView and reduce zoom by 3 steps
-          // Each zoom step in React Flow controls is typically ~0.1
-          // So 3 clicks of minus = reduce zoom by ~0.3
-          const currentViewport = getViewport();
-          const newZoom = Math.max(0.1, currentViewport.zoom - 0.3);
-          setViewport({ ...currentViewport, zoom: newZoom }, { duration: 0 });
-          hasInitialized.current = true;
-        }, 150);
-        return () => clearTimeout(timer);
-      }
-    }, [nodes.length, fitView, getViewport, setViewport]);
-
-    return (
+  return (
+    <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
         panOnDrag={true}
-        panOnScroll={false}
-        zoomOnScroll={true}
-        fitView={false}
+        panOnScroll={true}
+        zoomOnScroll={false}
+        fitView
         attributionPosition="bottom-left"
+        onPaneMouseDown={(e) => {
+          // Prevent panning if clicking on a node or its children
+          if (e.target.closest('.hierarchy-node')) {
+            e.preventDefault();
+          }
+        }}
       >
+        <WheelHandler />
         <Controls />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#6a6a6a" />
         <Panel position="top-left" className="info-panel">
@@ -422,14 +357,6 @@ function App() {
           <p>Click buttons on nodes to add/remove children</p>
         </Panel>
       </ReactFlow>
-    );
-  };
-
-  return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlowProvider>
-        <FlowContent />
-      </ReactFlowProvider>
     </div>
   );
 }
