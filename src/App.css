@@ -64,15 +64,15 @@
   background-color: #f5f4f0;
 }
 
-/* Edge styling - ensure edges are visible */
+/* Edge styling - blue edges like wireframe */
 .react-flow__edge-path {
-  stroke: #18181b;
-  stroke-width: 1.5;
+  stroke: #4a90e2;
+  stroke-width: 2;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #18181b;
-  stroke-width: 2;
+  stroke: #4a90e2;
+  stroke-width: 2.5;
 }
 
 

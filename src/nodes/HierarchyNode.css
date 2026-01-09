@@ -179,3 +179,33 @@
   line-height: 1.5;
 }
 
+/* Handle styling - blue dots like wireframe */
+.hierarchy-handle-source,
+.hierarchy-handle-target {
+  width: 10px;
+  height: 10px;
+  border: 2px solid white;
+  background: #4a90e2;
+  border-radius: 50%;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hierarchy-handle-source {
+  bottom: -5px;
+  left: 0;
+  transform: translateX(-50%);
+}
+
+.hierarchy-handle-target {
+  top: -5px;
+  left: 0;
+  transform: translateX(-50%);
+}
+
+.hierarchy-handle-source:hover,
+.hierarchy-handle-target:hover {
+  background: #357abd;
+  transform: translateX(-50%) scale(1.2);
+}
+

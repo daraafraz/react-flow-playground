@@ -17,8 +17,24 @@ function HierarchyNode({ data, id }) {
 
   return (
     <div className="hierarchy-node" onMouseDown={(e) => e.stopPropagation()}>
-      <Handle type="target" position={Position.Top} isConnectable={true} />
-      <Handle type="source" position={Position.Bottom} isConnectable={true} />
+      {/* Target handle - top left for child */}
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        id="top-left"
+        style={{ left: 0 }}
+        isConnectable={true} 
+        className="hierarchy-handle-target"
+      />
+      {/* Source handle - bottom left for parent */}
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        id="bottom-left"
+        style={{ left: 0 }}
+        isConnectable={true} 
+        className="hierarchy-handle-source"
+      />
       <button
         className="hierarchy-btn-remove-icon"
         onClick={(e) => handleButtonClick(e, onRemoveChild)}

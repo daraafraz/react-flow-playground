@@ -13,12 +13,18 @@ import {
 
 import HierarchyNode from './nodes/HierarchyNode';
 import EmptyStateNode from './nodes/EmptyStateNode';
+import LShapeEdge from './edges/LShapeEdge';
 import './App.css';
 
 // Define custom node types
 const nodeTypes = {
   hierarchy: HierarchyNode,
   emptyState: EmptyStateNode,
+};
+
+// Define custom edge types
+const edgeTypes = {
+  lshape: LShapeEdge,
 };
 
 // Tree layout constants - Credit card proportions (approximately 1.59:1)
@@ -294,9 +300,11 @@ function App() {
       id: `e-${parentId}-${childId}`,
       source: parentId,
       target: childId,
-      type: 'smoothstep',
+      sourceHandle: 'bottom-left',
+      targetHandle: 'top-left',
+      type: 'lshape',
       animated: false,
-      style: { stroke: '#18181b', strokeWidth: 1.5 },
+      style: { stroke: '#4a90e2', strokeWidth: 2 },
     };
     
     // Add both node and edge
@@ -397,6 +405,7 @@ function App() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
