@@ -13,6 +13,7 @@ import {
 import HierarchyNode from './nodes/HierarchyNode';
 import EmptyStateNode from './nodes/EmptyStateNode';
 import { WheelHandler } from './components/WheelHandler';
+import { InitialCentering } from './components/InitialCentering';
 import { useNodeHeights } from './hooks/useNodeHeights';
 import { useHierarchyActions } from './hooks/useHierarchyActions';
 import { useHierarchyLayout } from './hooks/useHierarchyLayout';
@@ -104,6 +105,7 @@ function App() {
           }}
         >
           <WheelHandler />
+          <InitialCentering nodes={nodes} edges={edges} />
           <Controls />
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#6a6a6a" />
           <Panel position="top-left" className="info-panel">
