@@ -6,7 +6,6 @@ import {
   useNodesState,
   useEdgesState,
   BackgroundVariant,
-  Panel,
   ReactFlowProvider,
 } from '@xyflow/react';
 
@@ -14,7 +13,7 @@ import HierarchyNode from '../nodes/HierarchyNode';
 import EmptyStateNode from '../nodes/EmptyStateNode';
 import { WheelHandler } from './WheelHandler';
 import { InitialCentering } from './InitialCentering';
-import { BackButton } from './BackButton';
+import { TopBar } from './TopBar';
 import { DoubleClickPreventer } from './DoubleClickPreventer';
 import { useNodeHeights } from '../hooks/useNodeHeights';
 import { useHierarchyActions } from '../hooks/useHierarchyActions';
@@ -82,7 +81,7 @@ export function Canvas({ onBack }) {
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <BackButton onBack={onBack} />
+      <TopBar onBack={onBack} />
       <ReactFlowProvider>
         <ReactFlow
           nodes={visibleNodes}
@@ -120,10 +119,6 @@ export function Canvas({ onBack }) {
           <InitialCentering nodes={nodes} edges={edges} />
           <Controls />
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#6a6a6a" />
-          <Panel position="top-left" className="info-panel" style={{ marginTop: '60px' }}>
-            <h2>🌳 Hierarchy Creator</h2>
-            <p>Click buttons on nodes to add/remove children</p>
-          </Panel>
         </ReactFlow>
       </ReactFlowProvider>
     </div>
