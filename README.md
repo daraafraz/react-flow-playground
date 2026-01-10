@@ -1,71 +1,32 @@
 # React Flow Hierarchy Creator
 
-A fixed hierarchy creator built with React Flow. Create and manage tree structures with a clean, minimal interface where nodes can add children, remove themselves, and maintain proper spacing without overlaps.
+A production-ready hierarchy creator built with React Flow. Create and manage tree structures with automatic layout, collision detection, and intuitive Figma-like interactions.
 
-## What Problem This Solves
+## Problem Statement
 
-Building hierarchical tree interfaces in React Flow often requires custom layout logic, collision detection, and node management. This project provides a ready-to-use hierarchy creator with:
+Building hierarchical tree interfaces in React Flow requires:
+- Custom layout algorithms for strict vertical trees
+- Collision detection to prevent node overlaps
+- Dynamic height handling for variable-length content
+- Intuitive interaction models (zoom/pan)
+- Clean separation of concerns for maintainability
 
-- Automatic tree layout with collision prevention
-- Fixed positioning (nodes aren't draggable, maintaining structure)
-- Self-contained node management (each node can add/remove children)
-- Clean, design-system-aligned UI
-
-## Who This Is For
-
-- Developers building tree/hierarchy visualizations
-- Teams needing a React Flow-based organizational chart tool
-- Anyone prototyping node-based hierarchy interfaces
-- Contributors looking to extend React Flow patterns
-
-## Why This Exists
-
-React Flow is powerful but building a fixed hierarchy with proper spacing, collision detection, and node management requires significant setup. This project removes that friction by providing:
-
-- Pre-configured layout algorithms
-- Working collision detection
-- Node lifecycle management
-- A clean starting point for hierarchy-based applications
-
-**What pain this removes:**
-- Manual layout calculations
-- Overlap detection and resolution
-- Node state synchronization
-- Edge connection management
-
-**What motivated its creation:**
-The need for a simple, working hierarchy creator that "just works" without requiring deep React Flow expertise.
-
-## What This Project Does
-
-- ✅ Creates fixed hierarchical tree structures
-- ✅ Automatically positions children with proper indentation
-- ✅ Prevents node overlaps with collision detection
-- ✅ Allows nodes to add children via button
-- ✅ Allows nodes to remove themselves and descendants
-- ✅ Maintains clean, minimal UI aligned with design systems
-- ✅ Provides empty state when no nodes exist
-- ✅ Supports zoom and pan on the canvas
-
-## What This Project Does NOT Do
-
-- ❌ Allow dragging nodes (structure is fixed)
-- ❌ Support multiple root nodes simultaneously
-- ❌ Provide data persistence (no save/load)
-- ❌ Include user authentication or multi-user features
-- ❌ Export to formats like JSON, PNG, or PDF
-- ❌ Support undo/redo operations
-- ❌ Include advanced layout algorithms (Dagre, ELK, etc.)
+This project provides a **production-ready solution** that addresses all of these challenges.
 
 ## Quick Start
 
-### Install
+### Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+
+### Installation
 
 ```bash
 npm install
 ```
 
-### Run
+### Development
 
 ```bash
 npm run dev
@@ -73,59 +34,149 @@ npm run dev
 
 Open `http://localhost:3000` in your browser.
 
-### Minimal Example
+### Build
 
-The app starts with a single "Root" node. Click the "+" button on any node to add a child. Click the "−" button to remove a node and all its descendants.
+```bash
+npm run build
+```
+
+### Code Quality
+
+```bash
+# Lint
+npm run lint
+
+# Format
+npm run format
+
+# Validate (lint + format check)
+npm run validate
+```
+
+## Features
+
+- ✅ **Strict Vertical Tree Layout**: Preorder traversal ensures one node per row
+- ✅ **Dynamic Node Heights**: Automatically adjusts layout for variable-length content
+- ✅ **Collapse/Expand**: Hide/show subtrees with recursive collapse support
+- ✅ **Figma-like Zoom/Pan**: Scroll to pan, Cmd/Ctrl+Scroll to zoom
+- ✅ **Inline Editing**: Click node labels to edit directly
+- ✅ **Clean Architecture**: Hook-based separation of concerns
+- ✅ **Zero Overlaps**: Guaranteed spacing with collision detection
+- ✅ **Production Ready**: Linting, formatting, CI/CD configured
+
+## Architecture Overview
+
+The project uses a **hook-based architecture** with clear separation of concerns:
+
+- **Custom Hooks**: `useNodeHeights`, `useHierarchyActions`, `useHierarchyLayout`
+- **Utilities**: Pure functions for layout calculation and tree operations
+- **Constants**: Centralized configuration values
+- **Components**: Reusable UI components (WheelHandler, nodes)
+
+See [ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed documentation.
 
 ## Usage
 
-**Adding Children:**
+### Basic Operations
+
+**Add Child:**
 1. Click the "+" button (bottom-right) on any node
 2. A new child appears below and indented from the parent
 
-**Removing Nodes:**
+**Remove Node:**
 1. Click the "−" button (top-right) on any node
 2. The node and all its descendants are removed
 
-**Navigation:**
-- Zoom with mouse wheel
-- Pan by dragging empty canvas space
-- Use controls in bottom-left for zoom/fit view
+**Edit Label:**
+1. Click on a node's label text
+2. Edit inline
+3. Click away or press Enter to save
 
-## How It Works
+**Collapse/Expand:**
+1. Click the chevron icon (top-left) on nodes with children
+2. Collapses/expands all descendants recursively
 
-The hierarchy creator uses:
+### Navigation
 
-1. **Layout Algorithm**: Calculates positions using BFS traversal, positioning children 1rem down and indented from parents
-2. **Collision Detection**: Iteratively resolves overlaps by adjusting node positions
-3. **Node State Management**: React Flow's `useNodesState` and `useEdgesState` hooks manage the tree
-4. **Custom Node Components**: Each node is a React component with add/remove buttons
+- **Pan**: Scroll (trackpad or mouse wheel)
+- **Zoom**: Cmd/Ctrl + Scroll
+- **Controls**: Use React Flow controls in bottom-left corner
 
-Nodes are not draggable—the structure is maintained automatically. Edges connect from parent to child using React Flow's default handles.
+## Architecture Decisions
+
+Key architectural decisions are documented in [Architecture Decision Records (ADRs)](./docs/adr/):
+
+- [ADR 001: Vertical Tree Layout](./docs/adr/001-vertical-tree-layout.md)
+- [ADR 002: Figma-like Zoom/Pan](./docs/adr/002-figma-like-zoom-pan.md)
+- [ADR 003: Hook-based Architecture](./docs/adr/003-hook-based-architecture.md)
+
+## Project Structure
+
+```
+src/
+├── App.jsx                 # Main orchestration component
+├── components/             # Reusable components
+│   └── WheelHandler.jsx    # Custom scroll/zoom handler
+├── hooks/                  # Custom React hooks
+│   ├── useNodeHeights.js
+│   ├── useHierarchyActions.js
+│   └── useHierarchyLayout.js
+├── utils/                  # Pure utility functions
+│   ├── layout.js
+│   ├── tree.js
+│   └── initialState.js
+├── constants/              # Configuration values
+│   └── layout.js
+└── nodes/                  # React Flow node components
+    ├── HierarchyNode.jsx
+    └── EmptyStateNode.jsx
+```
 
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 
-- How to set up the project locally
-- How to run tests and linting
-- How to submit a pull request
-- What kinds of contributions are welcome
+- Setup instructions
+- Code style guidelines
+- Pull request process
+- Issue reporting
+
+### First-Time Contributors
+
+Check out [`.github/ISSUE_TEMPLATE/good_first_issue.md`](./.github/ISSUE_TEMPLATE/good_first_issue.md) for beginner-friendly issues.
+
+## Development
+
+### Code Quality
+
+The project enforces code quality through:
+
+- **ESLint**: JavaScript/React linting
+- **Prettier**: Code formatting
+- **CI/CD**: Automated checks on pull requests
+
+Run `npm run validate` before committing.
+
+### Testing
+
+```bash
+# Run tests (when implemented)
+npm test
+```
 
 ## Project Status
 
-**Status:** Active development
+**Status:** Active Development
 
-This project is in active use and development. Response times for issues and PRs may vary, but contributions are reviewed regularly.
-
-**Current Focus:**
-- Stability and bug fixes
-- Documentation improvements
-- Performance optimizations
+- ✅ Core functionality complete
+- ✅ Architecture refactored
+- ✅ Documentation added
+- 🔄 Tests (planned)
+- 🔄 Performance optimizations (planned)
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
 

@@ -3,7 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 import './HierarchyNode.css';
 
 function HierarchyNode({ data, id }) {
-  const { label, childrenCount = 0, onAddChild, onRemoveChild, onUpdateLabel } = data;
+  const { label, childrenCount = 0, onAddChild, onRemoveChild, onUpdateLabel, onToggleCollapse, isCollapsed = false } = data;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
   const inputRef = useRef(null);
@@ -84,6 +84,24 @@ function HierarchyNode({ data, id }) {
     <div className="hierarchy-node" onMouseDown={handleNodeMouseDown}>
       <Handle type="target" position={Position.Left} id="left" isConnectable={true} className="hierarchy-handle-left" />
       <Handle type="source" position={Position.Left} id="left" isConnectable={true} className="hierarchy-handle-left" />
+      {childrenCount > 0 && (
+        <button
+          className="hierarchy-btn-collapse-icon"
+          onClick={(e) => handleButtonClick(e, onToggleCollapse)}
+          onMouseDown={handleButtonMouseDown}
+          title={isCollapsed ? "Expand" : "Collapse"}
+        >
+          {isCollapsed ? (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </button>
+      )}
       <button
         className="hierarchy-btn-remove-icon"
         onClick={(e) => handleButtonClick(e, onRemoveChild)}

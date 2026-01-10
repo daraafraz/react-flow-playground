@@ -4,13 +4,49 @@
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   width: 280px;
-  height: 141px;
+  min-height: 141px; /* Minimum height, allows growth */
+  height: auto; /* Allow vertical growth */
   color: #18181b;
   border: 1px solid #e8e6e0;
   transition: all 0.2s ease;
   position: relative;
   display: flex;
   flex-direction: column;
+}
+
+.hierarchy-btn-collapse-icon {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid #e8e6e0;
+  border-radius: 4px;
+  background: white;
+  color: #71717a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.hierarchy-btn-collapse-icon:hover {
+  background: #fafafa;
+  border-color: #d4d4d8;
+  color: #18181b;
+  transform: scale(1.1);
+}
+
+.hierarchy-btn-collapse-icon:active {
+  transform: scale(0.95);
+}
+
+.hierarchy-btn-collapse-icon svg {
+  display: block;
 }
 
 .hierarchy-btn-add-icon {
@@ -90,16 +126,20 @@
 .hierarchy-node-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   position: relative;
   z-index: 1;
   flex: 1;
-  justify-content: space-between;
+  justify-content: flex-start; /* Changed from space-between to allow natural growth */
   pointer-events: auto;
+  margin-top: 15px;
+  margin-left: -28px;
+  padding-left: 25px;
+  min-height: 0; /* Allow content to shrink if needed */
 }
 
 .hierarchy-node-label {
-  font-size: 20px;
+  font-size: 22px; /* Increased by 10% from 20px */
   font-weight: 500;
   color: #18181b;
   letter-spacing: -0.01em;
@@ -113,6 +153,11 @@
   pointer-events: auto;
   position: relative;
   z-index: 20;
+  width: 100%;
+  margin: 0;
+  margin-left: 0; /* Align with left edge (red line) */
+  word-wrap: break-word; /* Allow text to wrap */
+  overflow-wrap: break-word; /* Additional wrapping support */
 }
 
 .hierarchy-node-label:hover {
@@ -121,7 +166,7 @@
 }
 
 .hierarchy-node-label-input {
-  font-size: 20px;
+  font-size: 22px; /* Increased by 10% from 20px */
   font-weight: 500;
   color: #18181b;
   letter-spacing: -0.01em;
@@ -198,14 +243,16 @@
 }
 
 .hierarchy-node-count {
-  font-size: 14px;
+  font-size: 11px;
   text-align: left;
   color: #71717a;
   font-weight: 400;
-  padding-top: 12px;
-  border-top: 1px solid #e8e6e0;
+  padding-top: 18px;
+  padding-left: 2px;
+  margin-left: 0;
   font-style: normal;
   line-height: 1.5;
+  margin-top: 10px;
 }
 
 /* Left-side handles - blue, visible, center-left */
