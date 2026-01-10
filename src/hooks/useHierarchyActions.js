@@ -59,28 +59,28 @@ export function useHierarchyActions(setNodes, setEdges, edgesRef) {
    */
   const handleRemoveChild = useCallback(
     (nodeId) => {
-      setEdges((currentEdges) => {
-        const toRemove = new Set([nodeId]);
+      // Get current edges to calculate descendants
+      const currentEdges = edgesRef.current;
+      const toRemove = new Set([nodeId]);
 
-        const findDescendants = (parentId) => {
-          currentEdges.forEach((edge) => {
-            if (edge.source === parentId && !toRemove.has(edge.target)) {
-              toRemove.add(edge.target);
-              findDescendants(edge.target);
-            }
-          });
-        };
+      const findDescendants = (parentId) => {
+        currentEdges.forEach((edge) => {
+          if (edge.source === parentId && !toRemove.has(edge.target)) {
+            toRemove.add(edge.target);
+            findDescendants(edge.target);
+          }
+        });
+      };
 
-        findDescendants(nodeId);
+      findDescendants(nodeId);
 
-        setNodes((nds) => nds.filter((n) => !toRemove.has(n.id)));
-
-        return currentEdges.filter(
-          (e) => !toRemove.has(e.source) && !toRemove.has(e.target)
-        );
-      });
+      // Update nodes and edges separately
+      setNodes((nds) => nds.filter((n) => !toRemove.has(n.id)));
+      setEdges((eds) =>
+        eds.filter((e) => !toRemove.has(e.source) && !toRemove.has(e.target))
+      );
     },
-    [setNodes, setEdges]
+    [setNodes, setEdges, edgesRef]
   );
 
   /**
