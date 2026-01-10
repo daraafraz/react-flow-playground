@@ -1,121 +1,74 @@
-import { useRef, useEffect, useMemo } from 'react';
-import {
-  ReactFlow,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  BackgroundVariant,
-  Panel,
-  ReactFlowProvider,
-} from '@xyflow/react';
-
-import HierarchyNode from './nodes/HierarchyNode';
-import EmptyStateNode from './nodes/EmptyStateNode';
-import { WheelHandler } from './components/WheelHandler';
-import { InitialCentering } from './components/InitialCentering';
-import { useNodeHeights } from './hooks/useNodeHeights';
-import { useHierarchyActions } from './hooks/useHierarchyActions';
-import { useHierarchyLayout } from './hooks/useHierarchyLayout';
-import { createInitialNodes, createInitialEdges } from './utils/initialState';
-import { filterVisibleNodes, filterVisibleEdges } from './utils/tree';
-import { INITIAL_VIEWPORT } from './constants/layout';
+import { useState, useEffect } from 'react';
+import { Homepage } from './pages/Homepage';
+import { Canvas } from './components/Canvas';
 import './App.css';
 
-const nodeTypes = {
-  hierarchy: HierarchyNode,
-  emptyState: EmptyStateNode,
-};
+/**
+ * Get the current view from URL hash.
+ * Defaults to 'homepage' if no hash or invalid hash.
+ */
+function getViewFromHash() {
+  const hash = window.location.hash.slice(1); // Remove the '#'
+  return hash === 'canvas' ? 'canvas' : 'homepage';
+}
+
+/**
+ * Update URL hash to reflect current view.
+ */
+function updateHash(view) {
+  const newHash = view === 'canvas' ? '#canvas' : '#homepage';
+  if (window.location.hash !== newHash) {
+    window.history.replaceState(null, '', newHash);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/fcf0f246-e793-4a41-aac1-1215f04aa15c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:updateHash',message:'Updating URL hash',data:{view,newHash,currentHash:window.location.hash},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+  }
+}
 
 function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(createInitialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(createInitialEdges);
-  const edgesRef = useRef(edges);
+  // Initialize from URL hash, default to homepage
+  const [currentView, setCurrentView] = useState(() => {
+    const view = getViewFromHash();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/fcf0f246-e793-4a41-aac1-1215f04aa15c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:useState',message:'Initializing view from hash',data:{view,hash:window.location.hash},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    return view;
+  });
 
-  // Keep edges ref in sync
+  // Listen for hash changes (back/forward buttons)
   useEffect(() => {
-    edgesRef.current = edges;
-  }, [edges]);
+    const handleHashChange = () => {
+      const newView = getViewFromHash();
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/fcf0f246-e793-4a41-aac1-1215f04aa15c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:handleHashChange',message:'Hash changed',data:{newView,hash:window.location.hash,currentView},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      setCurrentView(newView);
+    };
 
-  // Measure and track node heights for dynamic layout
-  const { nodeHeightsRef, layoutTrigger } = useNodeHeights(nodes);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
-  // Hierarchy manipulation actions
-  const actions = useHierarchyActions(setNodes, setEdges, edgesRef);
+  // Update hash when view changes
+  useEffect(() => {
+    updateHash(currentView);
+  }, [currentView]);
 
-  // Calculate and update layout
-  useHierarchyLayout(
-    nodes,
-    edges,
-    nodeHeightsRef,
-    layoutTrigger,
-    actions,
-    setNodes
-  );
+  const handleStartDemo = () => {
+    setCurrentView('canvas');
+  };
 
-  // Filter visible nodes (hide collapsed descendants)
-  const visibleNodes = useMemo(() => {
-    const { visibleNodes: filtered } = filterVisibleNodes(
-      nodes,
-      edges,
-      actions.getDescendantIds
-    );
-    return filtered;
-  }, [nodes, edges, actions.getDescendantIds]);
+  const handleBack = () => {
+    setCurrentView('homepage');
+  };
 
-  // Filter visible edges (hide edges to/from collapsed nodes)
-  const visibleEdges = useMemo(() => {
-    const collapsedNodeIds = new Set();
-    const collapsedParents = new Set();
+  if (currentView === 'canvas') {
+    return <Canvas onBack={handleBack} />;
+  }
 
-    nodes.forEach((node) => {
-      if (node.data?.isCollapsed) {
-        collapsedParents.add(node.id);
-        const descendants = actions.getDescendantIds(node.id, edges);
-        descendants.forEach((id) => collapsedNodeIds.add(id));
-      }
-    });
-
-    return filterVisibleEdges(edges, collapsedNodeIds, collapsedParents);
-  }, [nodes, edges, actions.getDescendantIds]);
-
-  return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlowProvider>
-        <ReactFlow
-          nodes={visibleNodes}
-          edges={visibleEdges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          panOnDrag={true}
-          panOnScroll={true}
-          zoomOnScroll={false}
-          defaultViewport={INITIAL_VIEWPORT}
-          fitView={false}
-          attributionPosition="bottom-left"
-          onPaneMouseDown={(e) => {
-            // Prevent panning if clicking on a node or its children
-            if (e.target.closest('.hierarchy-node')) {
-              e.preventDefault();
-            }
-          }}
-        >
-          <WheelHandler />
-          <InitialCentering nodes={nodes} edges={edges} />
-          <Controls />
-          <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#6a6a6a" />
-          <Panel position="top-left" className="info-panel">
-            <h2>🌳 Hierarchy Creator</h2>
-            <p>Click buttons on nodes to add/remove children</p>
-          </Panel>
-        </ReactFlow>
-      </ReactFlowProvider>
-    </div>
-  );
+  return <Homepage onStartDemo={handleStartDemo} />;
 }
 
 export default App;
